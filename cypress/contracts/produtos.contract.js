@@ -10,4 +10,5 @@ const produtosSchema = Joi.object({
         _id: Joi.string()
     })
 })
+
 export default produtosSchema;
