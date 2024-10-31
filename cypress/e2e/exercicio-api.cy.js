@@ -7,15 +7,15 @@ describe('Testes da Funcionalidade Usuários', () => {
 
   let token
   beforeEach(() => {
-      cy.token('fulano@qa.com', 'teste').then(tkn => {
-          token = tkn
-      })
+    cy.token('alineteste@qa.com', 'teste123').then(tkn => {
+      token = tkn
+    })
   });
 
   it('Deve validar contrato de usuários', () => {
     cy.request('usuarios').then(response => {
       return usuarioContrato.validateAsync(response.body)
-  })
+    })
   });
 
   it('Deve listar usuários cadastrados', () => {
@@ -52,35 +52,45 @@ describe('Testes da Funcionalidade Usuários', () => {
   });
 
   it('Deve editar um usuário previamente cadastrado', () => {
-    
-    let nome = 'User QA Editado ' + Math.floor(Math.random() * 100000000)
+    let nomeEdit = `Usuario EBAC Editado${Math.floor(Math.random() * 100000000)}`
     let email = 'userqa' + Math.floor(Math.random() * 1000000) + '@qaedit.com.br';
 
-        cy.request({
-          method: 'PUT',
-          url: 'usuarios/MGXcB3Mjv0ep4dte',
-          headers: {authorization: token},
-          body: {
-            "nome": nome,
-            "email": email,
-            "password": 'teste',
-            "administrador": "true"
-          }
-        }).then(editResponse => {
-          expect(editResponse.status).to.eq(200);
-          expect(editResponse.body.message).to.include('Registro alterado com sucesso');
-        });
-   })
-
-  it('Deve deletar um usuário previamente cadastrado', () => {
+    cy.request('usuarios').then(response => {
+      let id = response.body.usuarios[6]._id
       cy.request({
-        method: 'DELETE',
-        url: 'usuarios/TzTOCFMM2sZa7QSE',
-        headers: { authorization: token },
+        method: 'PUT',
+        url: `usuarios/${id}`,
+        headers: { authorization: token},
+        body:
+        {
+          "nome": nomeEdit,
+          "email": email,
+          "password": 'teste',
+          "administrador": "true"
+        }
       }).then(response => {
-        expect(response.status).to.eq(200);
-        expect(response.body.message).to.include("Registro excluído com sucesso");
-      });
+        expect(response.body.message).to.equal('Registro alterado com sucesso')
+      })
+    })
   })
 
+  it('Deve deletar um usuário previamente cadastrado', () => {
+
+    let nome = faker.person.fullName();
+    let senha = faker.internet.password();
+    let email = faker.internet.email();
+
+    cy.cadastrarUsuario(token, nome, email, senha, 'true')
+    .then(response => {
+        let id = response.body._id
+        cy.request({
+          method: 'DELETE',
+          url: `usuarios/${id}`,
+          headers: { authorization: token },
+        }).then(response => {
+          expect(response.status).to.equal(200);
+          expect(response.body.message).to.include("Registro excluído com sucesso");
+        });
+      })
+    });
 });
